@@ -16,36 +16,34 @@ import { ref } from "vue";
 import * as msal from "@azure/msal-browser";
 
 export default {
-  setup() {
+  async setup() {
     const isLoggedOn = ref(false);
     const userData = ref("");
     const t = ref("");
 
-    var request = {
-      scopes: ["user.read"],
-      loginHint: preferred_username,
-      extraQueryParameters: { domain_hint: "organizations" },
-    };
-    const config = {
+    const msconfig = {
       auth: {
         clientId: "9fd0dafb-3646-47cc-b6a8-05ca78e5fff8",
         authority:
-          "https://login.microsoftonline.com/06671189-dfc0-40b6-a063-435ac5cc7b24/",
-        redirectUri: "http://localhost:3000",
+          "https://login.microsoftonline.com/06671189-dfc0-40b6-a063-435ac5cc7b24",
       },
-      cache: {
-        cacheLocation: "localStorage",
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: msal.LogLevel.Verbose,
+        },
       },
     };
-    console.log("before redirect");
-    const msalInstance = new msal.PublicClientApplication(config);
-    try {
-      const resp = await msalInstance.loginRedirect({});
-    } catch (err) {
-      // handle error
-    }
+    const auth = new msal.PublicClientApplication(msconfig);
+    const authResponse = await auth.acquireTokenSilent({});
+
+    isLoggedOn.value = authResponse.account.isLoggedOn;
+
     const LogOn = async () => {
-      const resp = await myMSALObj.loginRedirect(request);
+      const authResponse = await auth.loginRedirect({});
       isLoggedOn.value = !isLoggedOn.value;
     };
 
