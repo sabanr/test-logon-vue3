@@ -1,9 +1,66 @@
 <template>
-  <HelloWorld />
+  <div>
+    <h1>Logon testing</h1>
+    <div v-if="isLoggedOn">
+      <h1>User data: {{ userData }}</h1>
+      <button @click="LogOff">Log Off</button>
+    </div>
+    <div v-else>
+      <button @click="LogOn">Log On</button>
+    </div>
+  </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import { ref } from "vue";
+import * as msal from "@azure/msal-browser";
+
+export default {
+  setup() {
+    const isLoggedOn = ref(false);
+    const userData = ref("");
+    const t = ref("");
+
+    var request = {
+      scopes: ["user.read"],
+      loginHint: preferred_username,
+      extraQueryParameters: { domain_hint: "organizations" },
+    };
+    const config = {
+      auth: {
+        clientId: "9fd0dafb-3646-47cc-b6a8-05ca78e5fff8",
+        authority:
+          "https://login.microsoftonline.com/06671189-dfc0-40b6-a063-435ac5cc7b24/",
+        redirectUri: "http://localhost:3000",
+      },
+      cache: {
+        cacheLocation: "localStorage",
+      },
+    };
+    console.log("before redirect");
+    const msalInstance = new msal.PublicClientApplication(config);
+    try {
+      const resp = await msalInstance.loginRedirect({});
+    } catch (err) {
+      // handle error
+    }
+    const LogOn = async () => {
+      const resp = await myMSALObj.loginRedirect(request);
+      isLoggedOn.value = !isLoggedOn.value;
+    };
+
+    const LogOff = () => {
+      isLoggedOn.value = false;
+    };
+
+    return {
+      isLoggedOn,
+      userData,
+      LogOn,
+      LogOff,
+    };
+  },
+};
 </script>
 
 <style>
