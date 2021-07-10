@@ -30,30 +30,24 @@ export default {
       .handleRedirectResponse()
       .then((resp) => {
         console.log("Handling redirect response!");
+        let loggedInAccount = null;
         if (resp !== null) {
-          console.log("resp is not null");
-
-          if (resp.accessToken) {
-            console.log("got an access token!");
-          }
-          userName.value = resp.account.name;
-          userRoles.value.push(...resp.account.idTokenClaims.roles);
-          isLoggedOn.value = true;
+          loggedInAccount = resp.account;
         } else {
           console.log("getting all accounts!");
           const currentAccounts = msalClientApp.getAllAccounts();
           if (!currentAccounts || currentAccounts.length < 1) {
             console.log("no accounts found!");
             return;
-          } else if (currentAccounts.length > 1) {
-            console.log("mas de una cuenta!");
-          } else if (currentAccounts.length === 1) {
-            console.log("Una sola cuenta!");
-            const account = currentAccounts[0];
-            userName.value = account.name;
-            userRoles.value.push(...account.idTokenClaims.roles);
-            isLoggedOn.value = true;
+          } else if (currentAccounts.length >= 1) {
+            loggedInAccount = currentAccounts[0];
           }
+        }
+
+        if (loggedInAccount !== null) {
+          userName.value = loggedInAccount.name;
+          userRoles.value.push(...loggedInAccount.idTokenClaims.roles);
+          isLoggedOn.value = true;
         }
       })
       .catch((error) => {
@@ -79,6 +73,8 @@ export default {
         console.log(`Error de logout: ${error}`);
       } finally {
         isLoggedOn.value = false;
+        userName.value = "";
+        userRoles.value = [];
       }
     };
 
