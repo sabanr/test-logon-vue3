@@ -1,4 +1,4 @@
-import { createApp, provide } from "vue";
+import { createApp } from "vue";
 import App from "./App.vue";
 
 import * as msal from "@azure/msal-browser";
@@ -18,7 +18,7 @@ const msconfig = {
         console.log(`${loglevel} - ${message}`);
       },
       piiLoggingEnabled: false,
-      logLevel: msal.LogLevel.Trace,
+      logLevel: msal.LogLevel.Info,
     },
   },
 };
@@ -27,5 +27,4 @@ const msalClientApp = new msal.PublicClientApplication(msconfig);
 
 const app = createApp(App);
 app.provide("msalClientApp", msalClientApp);
-app.provide("genius", "Roberto");
 app.mount("#app");
