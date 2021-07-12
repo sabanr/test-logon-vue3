@@ -1,30 +1,14 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 
-import * as msal from "@azure/msal-browser";
+import * as Msal from "@azure/msal-browser";
 
-const msconfig = {
-  auth: {
-    clientId: "9fd0dafb-3646-47cc-b6a8-05ca78e5fff8",
-    authority:
-      "https://login.microsoftonline.com/06671189-dfc0-40b6-a063-435ac5cc7b24",
-  },
-  cache: {
-    cacheLocation: "localStorage",
-  },
-  system: {
-    loggerOptions: {
-      loggerCallback(loglevel, message, containsPii) {
-        console.log(`${loglevel} - ${message}`);
-      },
-      piiLoggingEnabled: false,
-      logLevel: msal.LogLevel.Info,
-    },
-  },
-};
+import msconfig from "./config/msconfig";
+import { MsalImplementation } from "./services/msal";
 
-const msalClientApp = new msal.PublicClientApplication(msconfig);
+const publicClientApp = new Msal.PublicClientApplication(msconfig);
+const msalImplementation = new MsalImplementation(publicClientApp);
 
 const app = createApp(App);
-app.provide("msalClientApp", msalClientApp);
+app.provide("$authlib", msalImplementation);
 app.mount("#app");
