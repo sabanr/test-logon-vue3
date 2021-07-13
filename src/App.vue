@@ -1,40 +1,67 @@
 <template>
-  <div>
+  <div class="container">
     <h1>AZURE SIGN-IN TESTING</h1>
     <div v-if="isAuthenticated">
-      <h2>{{ account.name }}</h2>
-      <h3>Roles:</h3>
-      <ul v-for="(r, index) in account.idTokenClaims.roles" :key="index">
-        <li>{{ r }}</li>
-      </ul>
-      <button @click="LogOff">Log Off</button>
+      <h2>Hello {{ account.profile.name }}</h2>
+      <h5>{{ account.profile.roles }}</h5>
+      <button @click="executeQuery">QUERY!</button>
+      <button @click="logOff">Log Off</button>
+      <p v-if="isQuerying">Executing query ...</p>
+      <p v-else>Product Data: {{ productData }}</p>
     </div>
     <div v-else>
-      <button @click="LogOn">Log On</button>
+      <button @click="logOn">Log On</button>
     </div>
   </div>
 </template>
 
 <script>
-import { inject } from "vue";
+import { inject, ref } from "vue";
 
 export default {
   setup() {
     const authlib = inject("$authlib");
+    const http = inject("$http");
 
-    const LogOn = async () => {
-      await authlib.signIn();
+    const isQuerying = ref(false);
+    const productData = ref("");
+
+    if (authlib.account.value) {
+      console.log(authlib.account.value.profile);
+    }
+    const logOn = () => {
+      authlib.signIn();
     };
 
-    const LogOff = async () => {
-      await authlib.signOut();
+    const logOff = () => {
+      authlib.signOut();
+    };
+
+    const executeQuery = async () => {
+      isQuerying.value = true;
+
+      try {
+        const busqueda =
+          "https://puntodegestion-api.azurewebsites.net/api/producto/porcodigo?codigo=121076";
+        const resp = await http.get(busqueda);
+
+        console.log(`${resp.data}`);
+        productData.value = JSON.stringify(resp.data);
+      } catch (error) {
+        console.error(error.errorMessage);
+      } finally {
+        isQuerying.value = false;
+      }
     };
 
     return {
+      isQuerying,
       isAuthenticated: authlib.isAuthenticated,
       account: authlib.account,
-      LogOn,
-      LogOff,
+      productData,
+      logOn,
+      logOff,
+      executeQuery,
     };
   },
 };

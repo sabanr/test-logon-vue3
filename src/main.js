@@ -1,14 +1,29 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 
-import * as Msal from "@azure/msal-browser";
+import adalConfig from "./config/adalConfig";
+import { AdalImplementation } from "./services/adal";
 
-import msconfig from "./config/msconfig";
-import { MsalImplementation } from "./services/msal";
+import axios from "axios";
+import AuthenticationContext from "adal-angular";
 
-const publicClientApp = new Msal.PublicClientApplication(msconfig);
-const msalImplementation = new MsalImplementation(publicClientApp);
+const authorizationContext = new AuthenticationContext(adalConfig);
+const adalImplementation = new AdalImplementation(authorizationContext);
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = adalImplementation.acquireToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (err) => {
+    return Promise.reject(err);
+  }
+);
 
 const app = createApp(App);
-app.provide("$authlib", msalImplementation);
+app.provide("$authlib", adalImplementation);
+app.provide("$http", axios);
 app.mount("#app");
